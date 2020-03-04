@@ -51,23 +51,33 @@ headerRow <- div(id="header", useShinyjs(),
                              multiple = TRUE,
                              choices=data_name))
 
-
 plotlyPanel <- tabPanel("Plotly",
                         plotly::plotlyOutput("plotlyData")
 )
 
 
-ui <- fluidPage(
+ui <- navbarPage("Pokemon App",
     plotlyPanel, 
+    id = "navBar",
     header=headerRow
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
+
+observe(if(input$navBar=="Map") {
+    cat(file=stderr(), input$navBar, "\n")
+    shinyjs::hide("header")
+} else {
+    cat(file=stderr(), input$navBar, "\n")
+    shinyjs::show("header")
+})
+
+
 output$plotlyData <- plotly::renderPlotly({
-        ggplot(data) + aes(x=name, y=sort(stamina), fill=name) +
+ggplot(aes(x=name, y=stamina, fill=name)) +
         geom_bar(stat="identity", position=position_dodge())
-    })
+})
 }
 
 # Run the application 

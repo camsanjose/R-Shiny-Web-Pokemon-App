@@ -1,74 +1,72 @@
 library(shiny)
 library(tidyverse)
 library(shinyjs)
+library(plotly)
+library(shinythemes)
 library(httr)
 library(dplyr)
 library(jsonlite)
+library(shinyjs)
 
 #library(RCurl)
 #getURL
 #503072804
-#http://www.omdbapi.com/?apikey=[yourkey]&
 
-url<- "https://swapi.co/api/people/"
-url2<- "https://swapi.co/api/planets/"
+url<- "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
+key = "11a0831306msh85289b71ee29d28p1b0d2ajsnd56ec6de06bd"
 
-planets<- GET(url2)
-starwars<- GET(url)
-
-details<- httr::content(starwars,as='parsed')$results
-details2<- httr::content(planets,as='parsed')$results
+pokemon = GET(url, config=add_headers("x-rapidapi-host"= "pokemon-go1.p.rapidapi.com",'x-rapidapi-key' = key))
+#save(pokemon, file = "pokemon_API.RData")
+#load(pokemon_API.RData)
+content(pokemon)
 
 
-heights <- numeric(length(details))
-mass <- numeric(length(details))
+details<- httr::content(pokemon,as='parsed')
+details
+
+attack <- numeric(length(details))
+defense<- numeric(length(details))
+stamina <- numeric(length(details))
+formas <- numeric(length(details))
+id <- numeric(length(details))
 name <- numeric(length(details))
-gender <- numeric(length(details))
-eye <- numeric(length(details))
-skin <- numeric(length(details))
-hair <- numeric(length(details))
 
 for (i in 1:length(details)) {
-    heights[i] <- as.numeric(details[[i]]$height) 
-    mass[i] <- as.numeric(details[[i]]$mass)
-    name[i] <- details[[i]]$name
-    gender[i] <- details[[i]]$gender
-    eye[i] <- details[[i]]$eye_color
-    skin[i] <- details[[i]]$skin_color
-    hair[i] <- details[[i]]$hair_color
+    attack[i] <- as.numeric(details[[i]]$base_attack) 
+    defense[i] <- as.numeric(details[[i]]$base_defense)
+    stamina[i] <- as.numeric(details[[i]]$base_stamina)
+    formas<- details[[i]]$form
+    id[i] <- as.numeric(details[[i]]$pokemon_id)
+    name[i] <- details[[i]]$pokemon_name
 }
 
-sw<- as.data.frame(cbind(name,heights,mass, gender, eye, skin, hair))
+data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
+data<- distinct(data)
+
+data_name<- levels(data$name)
+
+headerRow <- div(id="header", useShinyjs(),
+                 selectInput("selpok", 
+                             label="Select the Pokemon", 
+                             multiple = TRUE,
+                             choices=data_name))
+
+
+plotlyPanel <- tabPanel("Plotly",
+                        plotly::plotlyOutput("plotlyData")
+)
+
 
 ui <- fluidPage(
-    titlePanel("Old Faithful Geyser Data"),
-###
-    sidebarLayout(
-        sidebarPanel(
-            sliderInput("bins",
-                        "Number of bins:",
-                        min = 1,
-                        max = 50,
-                        value = 30)
-        ),
-
-        # Show a plot of the generated distribution
-        mainPanel(
-           plotOutput("distPlot")
-        )
-    )
+    plotlyPanel, 
+    header=headerRow
 )
 
 # Define server logic required to draw a histogram
 server <- function(input, output) {
-
-    output$distPlot <- renderPlot({
-        # generate bins based on input$bins from ui.R
-        x    <- faithful[, 2]
-        bins <- seq(min(x), max(x), length.out = input$bins + 1)
-
-        # draw the histogram with the specified number of bins
-        hist(x, breaks = bins, col = 'darkgray', border = 'white')
+output$plotlyData <- plotly::renderPlotly({
+        ggplot(data) + aes(x=name, y=sort(stamina), fill=name) +
+        geom_bar(stat="identity", position=position_dodge())
     })
 }
 

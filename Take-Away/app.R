@@ -43,17 +43,20 @@ for (i in 1:length(details)) {
 data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
 data<- distinct(data)
 
-data_name<- levels(data$name)
+data_name<- sort(data$name)
 #load("data.RData")
 
 ##########################################################################3
 
 
 headerRow <- div(id="header", useShinyjs(),
-                 selectInput("selpok", 
+                 selectInput(input= "selpok", 
                              label="Select the Pokemon", 
                              multiple = TRUE,
-                             choices=data_name))
+                             choices=data_name),
+                 downloadButton("report", "Generate report")
+)
+
 plotlyPanel <- tabPanel("Plotly",
                         plotly::plotlyOutput("plotlyData")
 )
@@ -79,14 +82,33 @@ observe({if(input$navBar=="Map") {
 data_filtered <- reactive({
     req(input$selpok)
     req(input$stamina)
-    data %>% filter(name %in% input$selpok, 
+    data %>% filter(nam %in% input$selpok, 
                          stamina %in% input$stamina)
 })   
 
 output$plotlyData <- plotly::renderPlotly({
-ggplot(data_filtered(), aes(x=name, y=stamina, fill=name)) +
+ggplot(data_filtered(), aes(x=nam, y=stamina, fill=nam)) +
         geom_bar(stat="identity", position=position_dodge())
 })
+output$report <- downloadHandler(
+# For PDF output, change this to "report.pdf"
+filename = "report.pdf",
+content = function(file) {
+    tempReport <- file.path(tempdir(), "report.Rmd")
+    file.copy("report.Rmd", tempReport, overwrite = TRUE)
+    
+    # Set up parameters to pass to Rmd document
+    params <- list(
+        selPok = isolate(input$selpok),
+        stamina = isolate(input$stamina)
+    )
+
+    rmarkdown::render(tempReport, output_file = file,
+                      params = params,
+                      envir = new.env(parent = globalenv())
+    )
+})
+
 } 
 
 # Run the application 

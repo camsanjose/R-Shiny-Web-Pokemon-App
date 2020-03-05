@@ -5,7 +5,6 @@ library(plotly)
 library(shinythemes)
 library(httr)
 library(dplyr)
-library(jsonlite)
 library(shinyjs)
 
 #############################################################################
@@ -15,8 +14,7 @@ url<- "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
 key = "11a0831306msh85289b71ee29d28p1b0d2ajsnd56ec6de06bd"
 
 pokemon = GET(url, config=add_headers("x-rapidapi-host"= "pokemon-go1.p.rapidapi.com",'x-rapidapi-key' = key))
-#save(pokemon, file = "pokemon_API.RData")
-#load(pokemon_API.RData)
+#load("pokemon_API.RData")
 content(pokemon)
 
 
@@ -46,6 +44,7 @@ data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
 data<- distinct(data)
 
 data_name<- levels(data$name)
+#load("data.RData")
 
 ##########################################################################3
 
@@ -61,7 +60,7 @@ plotlyPanel <- tabPanel("Plotly",
 
 
 ui <- navbarPage(
-    titlePanel=("Pokemon App"),
+    "Pokemon App",
     plotlyPanel,
     id = "navBar",
     header=headerRow
@@ -81,7 +80,7 @@ data_filtered <- reactive({
     req(input$selpok)
     req(input$stamina)
     data %>% filter(name %in% input$selpok, 
-                         stamina == input$stamina)
+                         stamina %in% input$stamina)
 })   
 
 output$plotlyData <- plotly::renderPlotly({

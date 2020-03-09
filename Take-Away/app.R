@@ -54,24 +54,34 @@ headerRow <- div(id="header", useShinyjs(),
                  selectInput(input= "selpok", 
                              label="Select the Pokemon", 
                              multiple = TRUE,
-                             choices=data_name),
+                             choices= data_name),
                  downloadButton("report", "Generate report")
 )
 
 plotlyPanel <- tabPanel("Plotly stamina",
-                        plotly::plotlyOutput("plotlyData")
+                        plotly::plotlyOutput("plotlystam")
 )
 
 
+plotlyPanel2 <- tabPanel("Plotly defense",
+                        plotly::plotlyOutput("plotlydef")
+)
+
+plotlyPanel3 <- tabPanel("Plotly attack",
+                         plotly::plotlyOutput("plotlyatt")
+)
+
 ui <- navbarPage(
-    "Pokemon App",
+   "Pokemon App",
     plotlyPanel,
+    plotlyPanel2,
+    plotlyPanel3,
     id = "navBar",
     header=headerRow
 )
 
 # Define server logic required to draw a histogram
-server <- function(input, output) {
+server <- function(input, output, session) {
 
     observe({if(input$navBar=="Map") {
         shinyjs::hide("header")
@@ -86,30 +96,43 @@ server <- function(input, output) {
         data %>% filter(name %in% input$selpok,
                              stamina == input$stamina)
     })
-    # 
     
-    output$plotlyData <- plotly::renderPlotly({
-    ggplot(data_filtered, aes(x=name, y=stamina, fill=name)) +
+    
+    output$plotlystam <- plotly::renderPlotly({
+    data_filtered() %>%
+         ggplot(aes(x=name, y=stamina, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
-    output$report <- downloadHandler(
-    # For PDF output, change this to "report.pdf"
-    filename = "takeaway.pdf",
-    content = function(file) {
-        tempReport <- file.path(tempdir(), "takeaway.Rmd")
-        file.copy("takeaway.Rmd", tempReport, overwrite = TRUE)
-        
-        # Set up parameters to pass to Rmd document
-        params <- list(
-            selPok = isolate(input$selpok),
-            stamina = isolate(input$stamina)
-        )
     
-        rmarkdown::render(tempReport, output_file = file,
-                          params = params,
-                          envir = new.env(parent = globalenv())
-        )
+    output$plotlydef <- plotly::renderPlotly({
+            ggplot(data, aes(x=name, y=defense, fill=name)) +
+            geom_bar(stat="identity", position=position_dodge())
     })
+    
+    output$plotlyatt <- plotly::renderPlotly({
+   ggplot(data, aes(x= name, y=attack, color=name))+
+    geom_boxplot()
+    })
+    
+    output$report <- downloadHandler(
+        # For PDF output, change this to "report.pdf"
+        filename = "report.pdf",
+        content = function(file) {
+            tempReport <- file.path(tempdir(), "report.Rmd")
+            file.copy("report.Rmd", tempReport, overwrite = TRUE)
+            
+            # Set up parameters to pass to Rmd document
+            params <- list(
+                selPok = isolate(input$selpok),
+                stamina = isolate(input$stamina), 
+                defense = isolate(input$defense),
+            )
+            
+            rmarkdown::render(tempReport, output_file = file,
+                              params = params,
+                              envir = new.env(parent = globalenv())
+            )
+        })
 
 } 
 

@@ -58,21 +58,26 @@ headerRow <- div(id="header", useShinyjs(),
                  downloadButton("report", "Generate report")
 )
 
-plotlyPanel <- tabPanel("Plotly stamina",
+plotlyPanel <- tabPanel("Stamina of Pokemon",
                         plotly::plotlyOutput("plotlystam")
 )
 
 
-plotlyPanel2 <- tabPanel("Plotly defense",
+plotlyPanel2 <- tabPanel("Defense of Pokemon",
                         plotly::plotlyOutput("plotlydef")
 )
 
-plotlyPanel3 <- tabPanel("Plotly attack",
+plotlyPanel3 <- tabPanel("Attack of Pokemon",
                          plotly::plotlyOutput("plotlyatt")
+)
+
+dataPanel <- tabPanel("Data",
+                      tableOutput("dataTable")
 )
 
 ui <- navbarPage(
    "Pokemon App",
+    dataPanel,
     plotlyPanel,
     plotlyPanel2,
     plotlyPanel3,
@@ -94,43 +99,44 @@ server <- function(input, output, session) {
         req(input$selpok)
         req(input$stamina)
         data %>% filter(name %in% input$selpok,
-                             stamina == input$stamina)
+                             stamina %in% input$stamina)
     })
     
-    
+    #Output del plot de stamina
     output$plotlystam <- plotly::renderPlotly({
     data_filtered() %>%
          ggplot(aes(x=name, y=stamina, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
-    
+    #Output del plot de defense
     output$plotlydef <- plotly::renderPlotly({
             ggplot(data, aes(x=name, y=defense, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
-    
-    output$plotlyatt <- plotly::renderPlotly({
-   ggplot(data, aes(x= name, y=attack, color=name))+
-    geom_boxplot()
+    #Output plot del attack
+   output$plotlyatt <- plotly::renderPlotly({
+    ggplot(data, aes(x=name, y=attack, fill=name)) +
+       geom_bar(stat="identity", position=position_dodge())
     })
+   #output table de los datos que estan llamando
+   output$dataTable <- renderTable(
+    data_filtered()
+   )
     
-    output$report <- downloadHandler(
-        # For PDF output, change this to "report.pdf"
-        filename = "report.pdf",
-        content = function(file) {
-            tempReport <- file.path(tempdir(), "report.Rmd")
-            file.copy("report.Rmd", tempReport, overwrite = TRUE)
-            
-            # Set up parameters to pass to Rmd document
-            params <- list(
-                selPok = isolate(input$selpok),
-                stamina = isolate(input$stamina), 
-                defense = isolate(input$defense),
-            )
-            
-            rmarkdown::render(tempReport, output_file = file,
-                              params = params,
-                              envir = new.env(parent = globalenv())
+   output$report <- downloadHandler(
+       filename = "report.pdf",
+       content = function(file) {
+           tempReport <- file.path(tempdir(), "report.Rmd")
+           file.copy("report.Rmd", tempReport, overwrite = TRUE)
+           
+           params <- list(
+               selYear = isolate(input$selpok),
+               defense = isolate(input$defense),
+               stamina = isolate(input$stamina)
+           )
+           rmarkdown::render(tempReport, output_file = file,
+                             params = params,
+                             envir = new.env(parent = globalenv())
             )
         })
 

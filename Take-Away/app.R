@@ -6,6 +6,7 @@ library(shinythemes)
 library(httr)
 library(dplyr)
 library(shinyjs)
+library(reshape2)
 
 #############################################################################
 #Get data from the web
@@ -45,7 +46,7 @@ library(shinyjs)
 
 load("data.RData")
 data_name<- sort(data$name)
-
+data_var <- c("stamina", "defense", "attack")
 
 ##########################################################################3
 
@@ -58,19 +59,27 @@ headerRow <- div(id="header", useShinyjs(),
                              selected = head(data_name,4)),
                  downloadButton("report", "Generate report")
 )
+headerRow2 <- div(id="secondheader", useShinyjs(),
+                 selectInput(input= "selvar", 
+                             label="Select the variable", 
+                             multiple = TRUE,
+                             choices= data_var,
+                             selected = data_var[1])
+)
 
 plotlyPanel <- tabPanel("Stamina of Pokemon",
-                        plotly::plotlyOutput("plotlystam")
+                        fluidPage(
+                            header,
+                            headerRow2,
+                            plotly::plotlyOutput("plotlystam") 
+                        )
+                        
 )
 
-
-plotlyPanel2 <- tabPanel("Defense of Pokemon",
-                        plotly::plotlyOutput("plotlydef")
+manyPlots <- tabPanel("Stamina of Pokemon",
+                        plotly::plotlyOutput("plotlymany")
 )
 
-plotlyPanel3 <- tabPanel("Attack of Pokemon",
-                         plotly::plotlyOutput("plotlyatt")
-)
 
 dataPanel <- tabPanel("Data",
                       tableOutput("dataTable")
@@ -80,8 +89,7 @@ ui <- navbarPage(
    "Pokemon App",
     dataPanel,
     plotlyPanel,
-    plotlyPanel2,
-    plotlyPanel3,
+   manyPlots,
     id = "navBar",
     header=headerRow
 )
@@ -101,28 +109,23 @@ server <- function(input, output, session) {
         data %>% filter(name %in% input$selpok)
     })
     
-    data_filtered2 <- reactive({
-        data %>% filter(name %in% input$selpok, stamina== input$stamina, 
-                        defense == input$defense, attack == input$attack )
-    })
+
     #Output del plot de stamina
     output$plotlystam <- plotly::renderPlotly({
     data_filtered2() %>%
          ggplot(aes(x=name, y=data$stamina, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
-    #Output del plot de defense
-    output$plotlydef <- plotly::renderPlotly({
-        data_filtered2() %>%
-            ggplot(aes(x=name, y=defense, fill=name)) +
-            geom_bar(stat="identity", position=position_dodge())
+    
+    dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
+    ggplot(dataplot,aes(x=variable, y= value, color=name, group= name))+ 
+        geom_line()
+    #Output of many plots
+    output$plotlymany <- plotly::renderPlotly({
+        ggplot(dataplot,aes(x=variable, y= value, color=name, group= name))+ 
+            geom_line()
     })
-    #Output plot del attack
-   output$plotlyatt <- plotly::renderPlotly({
-       data_filtered2() %>%
-    ggplot(aes(x=name, y=attack, fill=name)) +
-       geom_bar(stat="identity", position=position_dodge())
-    })
+
    #output table de los datos que estan llamando
    output$dataTable <- renderTable({
     data_filtered()

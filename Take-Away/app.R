@@ -56,8 +56,11 @@ headerRow <- div(id="header", useShinyjs(),
                              label="Select the Pokemon", 
                              multiple = TRUE,
                              choices= data_name,
-                             selected = head(data_name,4)),
-                 downloadButton("report", "Generate report")
+                             selected = head(data_name,4))
+)
+
+button <- div(id="button", useShinyjs(),
+    downloadButton("report", "Generate report")
 )
 headerRow2 <- div(id="secondheader", useShinyjs(),
                  selectInput(input= "selvar", 
@@ -69,29 +72,32 @@ headerRow2 <- div(id="secondheader", useShinyjs(),
 
 plotlyPanel <- tabPanel("Stamina of Pokemon",
                         fluidPage(
-                            header,
-                            headerRow2,
+                            headerRow,
                             plotly::plotlyOutput("plotlystam") 
-                        )
+                        ))
                         
-)
 
-manyPlots <- tabPanel("Stamina of Pokemon",
+manyPlots <- tabPanel("Variable of Pokemon",
+                      fluidPage(
+                          headerRow,
+                          headerRow2,
                         plotly::plotlyOutput("plotlymany")
-)
+))
 
 
 dataPanel <- tabPanel("Data",
+                      fluidPage(
+                          button,
+                          headerRow,
                       tableOutput("dataTable")
-)
+))
 
 ui <- navbarPage(
    "Pokemon App",
     dataPanel,
     plotlyPanel,
    manyPlots,
-    id = "navBar",
-    header=headerRow
+    id = "navBar"
 )
 
 # Define server logic required to draw a histogram
@@ -118,8 +124,7 @@ server <- function(input, output, session) {
     })
     
     dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
-    ggplot(dataplot,aes(x=variable, y= value, color=name, group= name))+ 
-        geom_line()
+    
     #Output of many plots
     output$plotlymany <- plotly::renderPlotly({
         ggplot(dataplot,aes(x=variable, y= value, color=name, group= name))+ 

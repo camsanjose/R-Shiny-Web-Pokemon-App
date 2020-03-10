@@ -46,12 +46,12 @@ library(reshape2)
 
 load("data.RData")
 data_name<- sort(data$name)
-data_var <- c("stamina", "defense", "attack")
+data_var <- c("stamina"=1, "defense"=2, "attack"=3)
 dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
-dataplot_name<- sort(dataplot$name)
+data2<- data[,3:5]
 ##########################################################################3
 
-
+##headers___________________________________________
 headerRow <- div(id="header", useShinyjs(),
                  selectInput(input= "selpok", 
                              label="Select the Pokemon", 
@@ -59,23 +59,31 @@ headerRow <- div(id="header", useShinyjs(),
                              choices= data_name)
 )
 
+headerRow2 <- div(id="header2", useShinyjs(),
+                 selectInput(input= "selname", 
+                             label="Select the Pokemon", 
+                             multiple = TRUE,
+                             choices= data_name)
+)
+
+
 button <- div(id="button", useShinyjs(),
     downloadButton("report", "Generate report")
 )
 
-headerRow2 <- div(id="secondheader", useShinyjs(),
+headervar <- div(id="secondheader", useShinyjs(),
                  selectInput(input= "selvar", 
                              label="Select the variable", 
-                             multiple = TRUE,
+                             multiple = F,
                              choices= data_var,
-                             selected = data_var[1])
+                             selected = 1)
 )
-
-plotlyPanel <- tabPanel("Stamina of Pokemon",
+#Panels________________________________________________________
+plotlyPanel <- tabPanel("Variable Selection of Pokemon",
                         fluidPage(
                             headerRow,
-                            headerRow2,
-                            plotly::plotlyOutput("plotlystam") 
+                            headervar,
+                            plotly::plotlyOutput("plotlyvar") 
                         ))
                         
 
@@ -88,6 +96,7 @@ dataPanel <- tabPanel("Data",
                       plotly::plotlyOutput("plotlymany")
 ))
 
+#Fit together_________________________________________________
 ui <- navbarPage(
    "Pokemon App",
     dataPanel,
@@ -95,7 +104,7 @@ ui <- navbarPage(
     id = "navBar"
 )
 
-# Define server logic required to draw a histogram
+# Define server logic required to draw a histogram_________________________
 server <- function(input, output, session) {
 
     observe({if(input$navBar=="Map") {
@@ -114,25 +123,31 @@ server <- function(input, output, session) {
         req(input$selpok)
         dataplot %>% filter(name %in% input$selpok)
     })
+     
+     data_filtered3 <- reactive({
+         req(input$selname)
+         req(input$selvar)
+         data2 %>% filter(name %in% input$selname)
+     })
 
-    #Output del plot de stamina
-    output$plotlystam <- plotly::renderPlotly({
-    data_filtered() %>%
-         ggplot(aes(x=name, y=data$stamina, fill=name)) +
+    #Output of the different variable plots 
+    output$plotlyvar <- plotly::renderPlotly({
+        varsel= as.numeric(input$selvar)
+    data_filtered3 %>%
+         ggplot(aes(x=name, y=varsel, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
-    })
-    
-    
-    #Output of many plots
-    output$plotlymany <- plotly::renderPlotly({
-        data_filtered2() %>%
-        ggplot(aes(x=variable, y= value, color=name, group= name))+ 
-            geom_line()
     })
 
    #output table de los datos que estan llamando
    output$dataTable <- renderTable({
     data_filtered()
+   })
+   
+   #Output of many plots
+   output$plotlymany <- plotly::renderPlotly({
+       data_filtered2() %>%
+           ggplot(aes(x=variable, y= value, color=name, group= name))+ 
+           geom_line()
    })
     
    output$report <- downloadHandler(

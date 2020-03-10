@@ -54,7 +54,8 @@ headerRow <- div(id="header", useShinyjs(),
                  selectInput(input= "selpok", 
                              label="Select the Pokemon", 
                              multiple = TRUE,
-                             choices= data_name),
+                             choices= data_name,
+                             selected = head(data_name,4)),
                  downloadButton("report", "Generate report")
 )
 
@@ -97,31 +98,35 @@ server <- function(input, output, session) {
 
     data_filtered <- reactive({
         req(input$selpok)
-        req(input$stamina)
-        data %>% filter(name %in% input$selpok,
-                             stamina %in% input$stamina)
+        data %>% filter(name %in% input$selpok)
     })
     
+    data_filtered2 <- reactive({
+        data %>% filter(name %in% input$selpok, stamina== input$stamina, 
+                        defense == input$defense, attack == input$attack )
+    })
     #Output del plot de stamina
     output$plotlystam <- plotly::renderPlotly({
-    data_filtered() %>%
-         ggplot(aes(x=name, y=stamina, fill=name)) +
+    data_filtered2() %>%
+         ggplot(aes(x=name, y=data$stamina, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
     #Output del plot de defense
     output$plotlydef <- plotly::renderPlotly({
-            ggplot(data, aes(x=name, y=defense, fill=name)) +
+        data_filtered2() %>%
+            ggplot(aes(x=name, y=defense, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
     #Output plot del attack
    output$plotlyatt <- plotly::renderPlotly({
-    ggplot(data, aes(x=name, y=attack, fill=name)) +
+       data_filtered2() %>%
+    ggplot(aes(x=name, y=attack, fill=name)) +
        geom_bar(stat="identity", position=position_dodge())
     })
    #output table de los datos que estan llamando
-   output$dataTable <- renderTable(
+   output$dataTable <- renderTable({
     data_filtered()
-   )
+   })
     
    output$report <- downloadHandler(
        filename = "report.pdf",

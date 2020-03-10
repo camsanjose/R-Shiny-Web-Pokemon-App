@@ -47,7 +47,8 @@ library(reshape2)
 load("data.RData")
 data_name<- sort(data$name)
 data_var <- c("stamina", "defense", "attack")
-
+dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
+dataplot_name<- sort(dataplot$name)
 ##########################################################################3
 
 
@@ -55,13 +56,13 @@ headerRow <- div(id="header", useShinyjs(),
                  selectInput(input= "selpok", 
                              label="Select the Pokemon", 
                              multiple = TRUE,
-                             choices= data_name,
-                             selected = head(data_name,4))
+                             choices= data_name)
 )
 
 button <- div(id="button", useShinyjs(),
     downloadButton("report", "Generate report")
 )
+
 headerRow2 <- div(id="secondheader", useShinyjs(),
                  selectInput(input= "selvar", 
                              label="Select the variable", 
@@ -73,30 +74,24 @@ headerRow2 <- div(id="secondheader", useShinyjs(),
 plotlyPanel <- tabPanel("Stamina of Pokemon",
                         fluidPage(
                             headerRow,
+                            headerRow2,
                             plotly::plotlyOutput("plotlystam") 
                         ))
                         
-
-manyPlots <- tabPanel("Variable of Pokemon",
-                      fluidPage(
-                          headerRow,
-                          headerRow2,
-                        plotly::plotlyOutput("plotlymany")
-))
 
 
 dataPanel <- tabPanel("Data",
                       fluidPage(
                           button,
                           headerRow,
-                      tableOutput("dataTable")
+                      tableOutput("dataTable"),
+                      plotly::plotlyOutput("plotlymany")
 ))
 
 ui <- navbarPage(
    "Pokemon App",
     dataPanel,
     plotlyPanel,
-   manyPlots,
     id = "navBar"
 )
 
@@ -115,19 +110,23 @@ server <- function(input, output, session) {
         data %>% filter(name %in% input$selpok)
     })
     
+     data_filtered2 <- reactive({
+        req(input$selpok)
+        dataplot %>% filter(name %in% input$selpok)
+    })
 
     #Output del plot de stamina
     output$plotlystam <- plotly::renderPlotly({
-    data_filtered2() %>%
+    data_filtered() %>%
          ggplot(aes(x=name, y=data$stamina, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
     
-    dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
     
     #Output of many plots
     output$plotlymany <- plotly::renderPlotly({
-        ggplot(dataplot,aes(x=variable, y= value, color=name, group= name))+ 
+        data_filtered2() %>%
+        ggplot(aes(x=variable, y= value, color=name, group= name))+ 
             geom_line()
     })
 

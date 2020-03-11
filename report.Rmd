@@ -62,18 +62,41 @@ a=cbind(data[,2],c)
 names(a)<-c("name","stamina", "defense", "attack") 
 
 data_filtered <- reactive({
-        req(input$selpok)
-        a %>% filter(name %in% input$selpok)
+        req(params$selpok)
+        a %>% filter(name %in% params$selpok)
     })
     
      data_filtered2 <- reactive({
-        req(input$selpok)
-        dataplot %>% filter(name %in% input$selpok)
+        req(params$selpok)
+        dataplot %>% filter(name %in% params$selpok)
     })
 ```
 
-# Pokemon
+# Introduction
 This report is dynamic, which means it will show you the variables you have selected from the Shiny App. 
 
-These are the variables you selected: 
+# Selection of Data
+
+These are the Pokemon you selected to compare: 
+```{r, echo=F}
+params$selpok
+```
+
+The variable that you chose to create the histogram was: 
+```{r, echo=F}
+params$selvar
+```
+
+The Pokemon you chose to select an image are: 
+```{r, echo=F}
+params$pokemon
+```
+
+#Plots 
+The plots that are generated from the Pokemon you selected to compare is the following: 
+
+```{r, echo=FALSE, warning=FALSE, message=FALSE}
+
+```
+
 

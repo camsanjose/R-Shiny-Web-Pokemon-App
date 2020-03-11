@@ -56,7 +56,8 @@ headerRow <- div(id="header", useShinyjs(),
                  selectInput(input= "selpok", 
                              label="Select the Pokemon", 
                              multiple = TRUE,
-                             choices= data_name)
+                             choices= data_name, 
+                             selected=tail(data_name))
 )
 
 headerRow2 <- div(id="header2", useShinyjs(),
@@ -81,7 +82,7 @@ headervar <- div(id="secondheader", useShinyjs(),
 #Panels________________________________________________________
 plotlyPanel <- tabPanel("Variable Selection of Pokemon",
                         fluidPage(
-                            headerRow,
+                            headerRow2,
                             headervar,
                             plotly::plotlyOutput("plotlyvar") 
                         ))
@@ -90,15 +91,23 @@ plotlyPanel <- tabPanel("Variable Selection of Pokemon",
 
 dataPanel <- tabPanel("Data",
                       fluidPage(
-                          button,
                           headerRow,
                       tableOutput("dataTable"),
-                      plotly::plotlyOutput("plotlymany")
-))
+                      plotly::plotlyOutput("plotlymany"))
+)
+
+pokePanel<- tabPanel("Pokemon",
+                     fluidPage(
+                     htmlOutput("picture"),
+                     p("For this app, the variable set shown is a Pokemon dataset, which comprises of five variables: 
+                         the id of the Pokemon, its name, and the levels of stamina, defense and attack for each Pokemon. 
+                         In the following table and graph, you can choose any Pokemon you want"),
+                         button))
 
 #Fit together_________________________________________________
 ui <- navbarPage(
    "Pokemon App",
+   pokePanel,
     dataPanel,
     plotlyPanel,
     id = "navBar"
@@ -126,15 +135,14 @@ server <- function(input, output, session) {
      
      data_filtered3 <- reactive({
          req(input$selname)
-         req(input$selvar)
-         data2 %>% filter(name %in% input$selname)
+         req(input$selname)
+         data2 %>% filter(name %in% input$selname, var %in% input$selvar)
      })
 
     #Output of the different variable plots 
     output$plotlyvar <- plotly::renderPlotly({
         varsel= as.numeric(input$selvar)
-    data_filtered3 %>%
-         ggplot(aes(x=name, y=varsel, fill=name)) +
+         ggplot(data_filtered3,aes(x=name, y=varsel, fill=name)) +
             geom_bar(stat="identity", position=position_dodge())
     })
 
@@ -149,6 +157,15 @@ server <- function(input, output, session) {
            ggplot(aes(x=variable, y= value, color=name, group= name))+ 
            geom_line()
    })
+   #IMAGE
+   output$picture <-
+       renderText({
+           c(
+               '<img src="',
+               "https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg",
+               '">'
+           )
+       })
     
    output$report <- downloadHandler(
        filename = "report.pdf",

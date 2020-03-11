@@ -12,40 +12,39 @@ library(shinydashboard)
 #############################################################################
 #Get data from the web
 
-#url<- "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
-#key = "11a0831306msh85289b71ee29d28p1b0d2ajsnd56ec6de06bd"
-
-#pokemon = GET(url, config=add_headers("x-rapidapi-host"= "pokemon-go1.p.rapidapi.com",'x-rapidapi-key' = key))
+url<- "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
+key = "11a0831306msh85289b71ee29d28p1b0d2ajsnd56ec6de06bd"
+pokemon = GET(url, config=add_headers("x-rapidapi-host"= "pokemon-go1.p.rapidapi.com",'x-rapidapi-key' = key))
 #load("pokemon_API.RData")
 #content(pokemon)
 
 
-#details<- httr::content(pokemon,as='parsed')
-#details
+details<- httr::content(pokemon,as='parsed')
+details
 
 ##########################################################################
 #cleaning, manipulation and analysis of the retrieved data
 
-# attack <- numeric(length(details))
-# defense<- numeric(length(details))
-# stamina <- numeric(length(details))
-# formas <- numeric(length(details))
-# id <- numeric(length(details))
-# name <- numeric(length(details))
-# 
-# for (i in 1:length(details)) {
-#     attack[i] <- as.numeric(details[[i]]$base_attack)
-#     defense[i] <- as.numeric(details[[i]]$base_defense)
-#     stamina[i] <- as.numeric(details[[i]]$base_stamina)
-#     formas<- details[[i]]$form
-#     id[i] <- as.numeric(details[[i]]$pokemon_id)
-#     name[i] <- details[[i]]$pokemon_name
-# }
-# 
-# data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
-# data<- distinct(data)
+attack <- numeric(length(details))
+defense<- numeric(length(details))
+stamina <- numeric(length(details))
+formas <- numeric(length(details))
+id <- numeric(length(details))
+name <- numeric(length(details))
 
-load("data.RData")
+for (i in 1:length(details)) {
+    attack[i] <- as.numeric(details[[i]]$base_attack)
+    defense[i] <- as.numeric(details[[i]]$base_defense)
+    stamina[i] <- as.numeric(details[[i]]$base_stamina)
+    formas<- details[[i]]$form
+    id[i] <- as.numeric(details[[i]]$pokemon_id)
+    name[i] <- details[[i]]$pokemon_name
+}
+
+data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
+data<- distinct(data)
+
+# load("data.RData")
 data_name<- sort(data$name)
 data_var <- c("stamina"=1, "defense"=2, "attack"=3)
 dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
@@ -88,10 +87,11 @@ headervar <- div(id="varheader", useShinyjs(),
 dataPanel <- tabPanel("Data",
                       fluidPage(
                           headerRow,
-                          p("Feel free to choose any Pokemon you want in the above header.
-                            The automatic selection of Pokemon are random, but please feel free to choose your own. You 
+                          p("The automatic selection of Pokemon are random, but please feel free to choose your own! You 
                             can see here the comparison for stamina, defense and attack levels of each Pokemon selected 
-                            in the following table and line-graph. "),
+                            in the following table and line-graph. The graph is dynamic, so feel free to put your mouse 
+                            on top of the variable you would like to know the value of, from who it comes from and the variable
+                            it is showing."),
                       tableOutput("dataTable"),
                       tableOutput("datamax"),
                       plotly::plotlyOutput("plotlymany"))
@@ -106,27 +106,35 @@ pokePanel<- tabPanel("Pokemon",
                        Pokemons of your choice and see how they stand in comparison to other Pokemon. In the first Panel named  
                        'Data' (on the top part of the app), you can click on it and will find a comparison of any group of 
                        Pokemon of your choice. There you can see its levels of stamina, defense and attack. Likewise, on the
-                       panel named characteristics, you can find the histogram for each variable. Please enjoy!"),
+                       panel named 'Characteristics', you can find the histogram for each variable. Additionally, in the panel
+                       named 'Images', you can choose from some Pokemon images"),
+                     p("Find below the button to generate a pdf file. Most importantly, enjoy the app!"),
                      button,
                      htmlOutput("picture2")))
 
 varPanel <- tabPanel("Characteristics",
                      fluidPage(
+                         p("Here you can see the characteristics of the Pokemon. For example, in the stamina, you can see that 
+                           the average stamina value of the Pokemon is approximately 153. Please choose from the three variabes:
+                           Stamina, Defense and Attack. This is a dynamic plotly, so if you put your mouse on top of the data, 
+                           you can see the value."),
                          headervar,
                           plotly::plotlyOutput("plotvar"))
 )
 
 imagePanel<- tabPanel("Images",
                        fluidRow(
+                           p("In this panel, you can choose from 7 Pokemon to show you what it looks like! 
+                             Choose whichever you like. The automatic selection is the most famous Pokemon, Pikachu!"),
                            column(3, selectInput("pokemon", label = h4("Pokemon images"), 
                                                  choices = list("Pikachu" = "Pikachu", 
                                                                 "Charmander" = "Charmander", 
-                                                                "Snorlax" = "Snorlax"), 
-                                                                # "Bulbasaur"= "Bulbasaur", 
-                                                                # "Jigglypuff" = "JigglyPuff", 
-                                                                # "Meowth"= "Meowth"),
+                                                                "Snorlax" = "Snorlax",
+                                                                "Bulbasaur"= "Bulbasaur",
+                                                                "Jigglypuff" = "Jigglypuff",
+                                                                "Meowth"= "Meowth"),
                                                  selected = "Pikachu"),
-                                  imageOutput("img1")), # here is the image
+                                  htmlOutput("img1")), # here is the image
                            column(9, plotOutput("plot2"))
                        ))
 
@@ -210,14 +218,14 @@ shinyserver <- function(input, output, session) {
        if(input$pokemon == "Pikachu"){            
            c(
                '<img src="',
-               "http://dehayf5mhw1h7.cloudfront.net/wp-content/uploads/sites/38/2016/01/18220900/Getty_011816_Bluepenguin.jpg",
+               "https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Pok%C3%A9mon_Pikachu_art.png/220px-Pok%C3%A9mon_Pikachu_art.png",
                '">'
            )
        }                                        
        else if(input$pokemon == "Charmander"){
            c(
                '<img src="',
-               "http://3.bp.blogspot.com/_cBH6cWZr1IU/TUURNp7LADI/AAAAAAAABsY/76UhGhmxjzY/s640/penguin+cookies_0018.jpg",
+               "https://assets.pokemon.com/assets/cms2/img/pokedex/full/004.png",
                '">'
            )
        }
@@ -228,7 +236,30 @@ shinyserver <- function(input, output, session) {
                '">'
            )
        }
+       else if(input$pokemon == "Bulbasaur"){
+           c(
+               '<img src="',
+               "https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png",
+               '">'
+           )
+       }
+       else if(input$pokemon == "Jigglypuff"){
+           c(
+               '<img src="',
+               "https://i.pinimg.com/originals/f3/14/17/f314179b48b6184132860d57759ffbac.png",
+               '">'
+           )
+       }
+       else if(input$pokemon == "Meowth"){
+           c(
+               '<img src="',
+               "https://assets.pokemon.com/assets/cms2/img/pokedex/full/052.png",
+               '">'
+           )
+       }
    })
+   
+   
 #PDF FILE!!!    
    output$report <- downloadHandler(
        filename = "report.pdf",
@@ -237,10 +268,9 @@ shinyserver <- function(input, output, session) {
            file.copy("report.Rmd", tempReport, overwrite = TRUE)
            
            params <- list(
-               selYear = isolate(input$selpok),
-               defense = isolate(input$defense),
-               stamina = isolate(input$stamina),
-               attack = isolate(input$attack)
+               pokemon = isolate(input$selpok),
+               pokemon2 = isolate(input$selpok),
+               variable = isolate(input$selvar)
            )
            rmarkdown::render(tempReport, output_file = file,
                              params = params,

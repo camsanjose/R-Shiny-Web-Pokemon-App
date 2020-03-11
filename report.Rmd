@@ -1,13 +1,79 @@
 ---
-title: "report"
+title: "Pokemon App"
 author: "Camila San Jose"
 date: "11/3/2020"
 output: pdf_document
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
-hello
+```{r setup, include=FALSE, warning=F, message=FALSE}
+library(shiny)
+library(tidyverse)
+library(shinyjs)
+library(plotly)
+library(shinythemes)
+library(httr)
+library(dplyr)
+library(shinyjs)
+library(reshape2)
+library(shinydashboard)
 
+#Get data from the web
+
+url<- "https://pokemon-go1.p.rapidapi.com/pokemon_stats.json"
+key = "11a0831306msh85289b71ee29d28p1b0d2ajsnd56ec6de06bd"
+pokemon = GET(url, config=add_headers("x-rapidapi-host"= "pokemon-go1.p.rapidapi.com",'x-rapidapi-key' = key))
+
+
+details<- httr::content(pokemon,as='parsed')
+details
+
+##########################################################################
+#cleaning, manipulation and analysis of the retrieved data
+
+attack <- numeric(length(details))
+defense<- numeric(length(details))
+stamina <- numeric(length(details))
+formas <- numeric(length(details))
+id <- numeric(length(details))
+name <- numeric(length(details))
+
+for (i in 1:length(details)) {
+    attack[i] <- as.numeric(details[[i]]$base_attack)
+    defense[i] <- as.numeric(details[[i]]$base_defense)
+    stamina[i] <- as.numeric(details[[i]]$base_stamina)
+    formas<- details[[i]]$form
+    id[i] <- as.numeric(details[[i]]$pokemon_id)
+    name[i] <- details[[i]]$pokemon_name
+}
+
+data<- as.data.frame(cbind(id, name, formas, stamina, defense, attack))
+data<- distinct(data)
+
+data_name<- sort(data$name)
+data_var <- c("stamina"=1, "defense"=2, "attack"=3)
+dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
+data2<- data[,3:5]
+d<- as.numeric(as.character(data2[,1]))
+dd<- as.numeric(as.character(data2[,2]))
+ddd<- as.numeric(as.character(data2[,3]))
+data2<- cbind(d,dd,ddd)
+c=as.data.frame(data2)
+a=cbind(data[,2],c)
+names(a)<-c("name","stamina", "defense", "attack") 
+
+data_filtered <- reactive({
+        req(input$selpok)
+        a %>% filter(name %in% input$selpok)
+    })
+    
+     data_filtered2 <- reactive({
+        req(input$selpok)
+        dataplot %>% filter(name %in% input$selpok)
+    })
+```
+
+# Pokemon
+This report is dynamic, which means it will show you the variables you have selected from the Shiny App. 
+
+These are the variables you selected: 
 

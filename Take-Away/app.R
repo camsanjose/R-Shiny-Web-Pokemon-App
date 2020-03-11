@@ -269,7 +269,7 @@ shinyserver <- function(input, output, session) {
            
            params <- list(
                pokemon = isolate(input$selpok),
-               pokemon2 = isolate(input$selpok),
+               pokemon2 = isolate(input$pokemon),
                variable = isolate(input$selvar)
            )
            rmarkdown::render(tempReport, output_file = file,

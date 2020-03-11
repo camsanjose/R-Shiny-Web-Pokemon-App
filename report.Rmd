@@ -20,6 +20,7 @@ library(dplyr)
 library(shinyjs)
 library(reshape2)
 library(shinydashboard)
+library(htmltools)
 
 #Get data from the web
 
@@ -113,9 +114,26 @@ ggplot(c, aes(c[,varsel])) +
 ```
 
 The image of the Pokemon you selected is: 
+```{r, include=F}
+       if(params$pokemon == "Pikachu"){            uurl= "https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Pok%C3%A9mon_Pikachu_art.png/220px-Pok%C3%A9mon_Pikachu_art.png"
+       } else if(params$pokemon == "Charmander"){
+uurl="https://assets.pokemon.com/assets/cms2/img/pokedex/full/004.png"
+       }else if(params$pokemon == "Snorlax"){
+          uurl="https://assets.pokemon.com/assets/cms2/img/pokedex/full/143.png"
+       } else if(params$pokemon == "Bulbasaur"){
+uurl="https://upload.wikimedia.org/wikipedia/en/2/28/Pok%C3%A9mon_Bulbasaur_art.png"
+       }else if(params$pokemon == "Jigglypuff"){
+         uurl= "https://i.pinimgi.com/originals/f3/14/17/f314179b48b6184132860d57759ffbac.png"
+       }else if(params$pokemon == "Meowth"){
+        uurl= "https://assets.pokemon.com/assets/cms2/img/pokedex/full/052.png"
+       }else if(params$pokemon == "Squirtle"){
+uurl="https://assets.pokemon.com/assets/cms2/img/pokedex/full/007.png"
+       }
+```
 
-```{r}
-# knitr::include_graphics()
+
+```{r, echo=F, showChoro1}
+shiny::includeHTML(uurl)
 ```
 
 Thank your for interacting with the Pokemon! I hope you enjoyed. 

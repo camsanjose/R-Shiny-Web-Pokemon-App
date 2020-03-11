@@ -95,7 +95,7 @@ The Pokemon you chose to select an image is:
  params$pokemon
 ```
 
-# Plots
+## Plots
 
 The plots that are generated from the Pokemon you selected to compare is the following: 
 
@@ -137,4 +137,5 @@ uurl="https://assets.pokemon.com/assets/cms2/img/pokedex/full/007.png"
 shiny::includeHTML(uurl)
 ```
 
-Thank your for interacting with the Pokemon! I hope you enjoyed. 
+Thank your for interacting with the Pokemon! I hope you enjoyed! 
+

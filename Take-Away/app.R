@@ -57,7 +57,6 @@ data2<- cbind(d,dd,ddd)
 c=as.data.frame(data2)
 a=cbind(data[,2],c)
 names(a)<-c("name","stamina", "defense", "attack")
-
 ##########################################################################3
 
 ##headers___________________________________________
@@ -82,19 +81,17 @@ headervar <- div(id="varheader", useShinyjs(),
                              selected = data_var[1])
 )
 
-headervar2 <- div(id="secondheader", useShinyjs(),
-                 selectInput(input= "var2",
-                             label="Select the variable",
-                             multiple = F,
-                             choices= data_var,
-                             selected = data_var[1])
-)
+
 
 #Panels________________________________________________________
 
 dataPanel <- tabPanel("Data",
                       fluidPage(
                           headerRow,
+                          p("Feel free to choose any Pokemon you want in the above header.
+                            The automatic selection of Pokemon are random, but please feel free to choose your own. You 
+                            can see here the comparison for stamina, defense and attack levels of each Pokemon selected 
+                            in the following table and line-graph. "),
                       tableOutput("dataTable"),
                       tableOutput("datamax"),
                       plotly::plotlyOutput("plotlymany"))
@@ -103,13 +100,14 @@ dataPanel <- tabPanel("Data",
 pokePanel<- tabPanel("Pokemon",
                      fluidPage(
                      htmlOutput("picture"),
-                     button,
                      p("For this app, the variable set shown is a Pokemon dataset, which comprises of five variables: 
                          the id of the Pokemon, its name, and the levels of stamina, defense and attack for each Pokemon. 
-                         here are many Pokemons to choose from, 676 Pokemons to be exact. This page is very easy to compare
-                       Pokemons of your choice and see how they stand in comparison to other Pokemon. For example, in the 
-                       Data Panel on the top part of the app, you can click on it and will find a comparison of any group of 
-                       Pokemon of your choice. "),
+                         There are many Pokemons to choose from, 676 Pokemons to be exact. This page is very easy to compare
+                       Pokemons of your choice and see how they stand in comparison to other Pokemon. In the first Panel named  
+                       'Data' (on the top part of the app), you can click on it and will find a comparison of any group of 
+                       Pokemon of your choice. There you can see its levels of stamina, defense and attack. Likewise, on the
+                       panel named characteristics, you can find the histogram for each variable. Please enjoy!"),
+                     button,
                      htmlOutput("picture2")))
 
 varPanel <- tabPanel("Characteristics",
@@ -118,11 +116,19 @@ varPanel <- tabPanel("Characteristics",
                           plotly::plotlyOutput("plotvar"))
 )
 
-switchPanel<- tabPanel("Graphs",
-                       fluidPage(
-                           headervar2,
-                           plotly::plotlyOutput("diffplot"))
-)
+imagePanel<- tabPanel("Images",
+                       fluidRow(
+                           column(3, selectInput("pokemon", label = h4("Pokemon images"), 
+                                                 choices = list("Pikachu" = "Pikachu", 
+                                                                "Charmander" = "Charmander", 
+                                                                "Snorlax" = "Snorlax"), 
+                                                                # "Bulbasaur"= "Bulbasaur", 
+                                                                # "Jigglypuff" = "JigglyPuff", 
+                                                                # "Meowth"= "Meowth"),
+                                                 selected = "Pikachu"),
+                                  imageOutput("img1")), # here is the image
+                           column(9, plotOutput("plot2"))
+                       ))
 
 #Fit together_________________________________________________
 ui <- navbarPage(
@@ -130,7 +136,7 @@ ui <- navbarPage(
    pokePanel,
     dataPanel,
    varPanel,
-   switchPanel,
+   imagePanel,
    theme= shinytheme("readable"),
     id = "navBar"
 )
@@ -159,15 +165,7 @@ shinyserver <- function(input, output, session) {
    #output table de los datos que estan llamando
    output$dataTable <- renderTable({
     data_filtered()
-   }, options = list(rowCallback = I('
-            function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
-                                      if (parseFloat(aData[,3]) >= 200)
-                                      $("td:eq(3)", nRow).css("font-weight", "bold");
-                                      if (parseFloat(aData[,3]) >= 100)
-                                      $("td:eq(3)", nRow).css("background-color", "#9BF59B");
-  }'),
-                      pageLength = 10, orderClasses = TRUE, searching = FALSE, paging = FALSE
-   ))
+   })
    
    #Output of many plots
    output$plotlymany <- plotly::renderPlotly({
@@ -185,16 +183,6 @@ shinyserver <- function(input, output, session) {
                                                            xlab( names(data_var[varsel]))
    })
    
-   # #output of different graphs 
-   # output$diffplot <- renderUI({
-   #     obj<- switch(input$var2, 
-   #                  "stamina" = stamina, 
-   #                  "defense" = defense, 
-   #                  "attack" = attack)
-   #     var.opts <- namel(colnames(obj))
-   #     selectInput("variable","Variable:", var.opts)
-   # })
-   # 
   
 
    #IMAGE
@@ -214,7 +202,34 @@ shinyserver <- function(input, output, session) {
                '">'
            )
        })
-    
+
+
+
+   #IMAGES of pokemon selected
+   output$img1 <- renderText({
+       if(input$pokemon == "Pikachu"){            
+           c(
+               '<img src="',
+               "http://dehayf5mhw1h7.cloudfront.net/wp-content/uploads/sites/38/2016/01/18220900/Getty_011816_Bluepenguin.jpg",
+               '">'
+           )
+       }                                        
+       else if(input$pokemon == "Charmander"){
+           c(
+               '<img src="',
+               "http://3.bp.blogspot.com/_cBH6cWZr1IU/TUURNp7LADI/AAAAAAAABsY/76UhGhmxjzY/s640/penguin+cookies_0018.jpg",
+               '">'
+           )
+       }
+       else if(input$pokemon == "Snorlax"){
+           c(
+               '<img src="',
+               "https://assets.pokemon.com/assets/cms2/img/pokedex/full/143.png",
+               '">'
+           )
+       }
+   })
+#PDF FILE!!!    
    output$report <- downloadHandler(
        filename = "report.pdf",
        content = function(file) {

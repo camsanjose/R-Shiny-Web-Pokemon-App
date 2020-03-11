@@ -132,7 +132,8 @@ imagePanel<- tabPanel("Images",
                                                                 "Snorlax" = "Snorlax",
                                                                 "Bulbasaur"= "Bulbasaur",
                                                                 "Jigglypuff" = "Jigglypuff",
-                                                                "Meowth"= "Meowth"),
+                                                                "Meowth"= "Meowth",
+                                                                "Squirtle"= "Squirtle"),
                                                  selected = "Pikachu"),
                                   htmlOutput("img1")), # here is the image
                            column(9, plotOutput("plot2"))
@@ -254,6 +255,13 @@ shinyserver <- function(input, output, session) {
            c(
                '<img src="',
                "https://assets.pokemon.com/assets/cms2/img/pokedex/full/052.png",
+               '">'
+           )
+       }
+       else if(input$pokemon == "Squirtle"){
+           c(
+               '<img src="',
+               "https://assets.pokemon.com/assets/cms2/img/pokedex/full/007.png",
                '">'
            )
        }

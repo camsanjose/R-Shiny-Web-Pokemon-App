@@ -96,7 +96,9 @@ params$pokemon
 The plots that are generated from the Pokemon you selected to compare is the following: 
 
 ```{r, echo=FALSE, warning=FALSE, message=FALSE}
-
+ data_filtered2() %>%
+           ggplot(aes(x=variable, y= value, color=name, group= name))+ 
+           geom_line()+ labs(color= "Pokemon selected")
 ```
 
 

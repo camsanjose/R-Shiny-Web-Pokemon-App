@@ -1,37 +1,10 @@
 ## Welcome to GitHub Pages
 
-For this app, we selected a Pokemon dataset. In this dataset you can find 
-
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
-
-### Markdown
-
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
-
-```markdown
-Syntax highlighted code block
-
-# Header 1
-## Header 2
-### Header 3
-
-- Bulleted
-- List
-
-1. Numbered
-2. List
-
-**Bold** and _Italic_ and `Code` text
-
-[Link](url) and ![Image](src)
-```
-
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
-
-### Jekyll Themes
-
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/camsanjose/First-Take-away/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
+For this app, the variable set shown is a Pokemon dataset, which comprises of five variables: 
+                         the id of the Pokemon, its name, and the levels of stamina, defense and attack for each Pokemon. 
+                         There are many Pokemons to choose from, 676 Pokemons to be exact. This page is very easy to compare
+                       Pokemons of your choice and see how they stand in comparison to other Pokemon. In the first Panel named  
+                       'Data' (on the top part of the app), you can click on it and will find a comparison of any group of 
+                       Pokemon of your choice. There you can see its levels of stamina, defense and attack. Likewise, on the
+                       panel named 'Characteristics', you can find the histogram for each variable. Additionally, in the panel
+                       named 'Images', you can choose from some Pokemon images

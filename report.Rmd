@@ -75,6 +75,7 @@ data_filtered2 <-
 ```
 
 # Introduction
+
 This report is dynamic, which means it will show you the variables you have selected from the Shiny App. 
 
 # Selection of Data
@@ -113,7 +114,7 @@ ggplot(c, aes(c[,varsel])) +
         geom_histogram(fill="lightblue", col="darkgoldenrod1")+ labs(title= paste("Histogram of ", names(data_var[varsel]))) + xlab( names(data_var[varsel]))
 ```
 
-The image of the Pokemon you selected is: 
+
 ```{r, include=F}
        if(params$pokemon == "Pikachu"){            uurl= "https://upload.wikimedia.org/wikipedia/en/thumb/a/a6/Pok%C3%A9mon_Pikachu_art.png/220px-Pok%C3%A9mon_Pikachu_art.png"
        } else if(params$pokemon == "Charmander"){
@@ -132,7 +133,7 @@ uurl="https://assets.pokemon.com/assets/cms2/img/pokedex/full/007.png"
 ```
 
 
-```{r, echo=F, showChoro1}
+```{r, include=F, showChoro1}
 shiny::includeHTML(uurl)
 ```
 

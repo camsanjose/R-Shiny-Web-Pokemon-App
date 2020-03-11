@@ -33,7 +33,7 @@ library(reshape2)
 # name <- numeric(length(details))
 # 
 # for (i in 1:length(details)) {
-#     attack[i] <- as.numeric(details[[i]]$base_attack) 
+#     attack[i] <- as.numeric(details[[i]]$base_attack)
 #     defense[i] <- as.numeric(details[[i]]$base_defense)
 #     stamina[i] <- as.numeric(details[[i]]$base_stamina)
 #     formas<- details[[i]]$form
@@ -49,6 +49,13 @@ data_name<- sort(data$name)
 data_var <- c("stamina"=1, "defense"=2, "attack"=3)
 dataplot <- melt(data=data, id.vars= "name", measure.vars=c("stamina", "defense", "attack"))
 data2<- data[,3:5]
+d<- as.numeric(as.character(data2[,1]))
+dd<- as.numeric(as.character(data2[,2]))
+ddd<- as.numeric(as.character(data2[,3]))
+data2<- cbind(d,dd,ddd)
+c=as.data.frame(data2)
+a=cbind(data[,2],c)
+
 ##########################################################################3
 
 ##headers___________________________________________
@@ -60,34 +67,20 @@ headerRow <- div(id="header", useShinyjs(),
                              selected=tail(data_name))
 )
 
-headerRow2 <- div(id="header2", useShinyjs(),
-                 selectInput(input= "selname", 
-                             label="Select the Pokemon", 
-                             multiple = TRUE,
-                             choices= data_name)
-)
-
 
 button <- div(id="button", useShinyjs(),
     downloadButton("report", "Generate report")
 )
 
 headervar <- div(id="secondheader", useShinyjs(),
-                 selectInput(input= "selvar", 
-                             label="Select the variable", 
+                 selectInput(input= "selvar",
+                             label="Select the variable",
                              multiple = F,
                              choices= data_var,
-                             selected = 1)
+                             selected = data_var[1])
 )
-#Panels________________________________________________________
-plotlyPanel <- tabPanel("Variable Selection of Pokemon",
-                        fluidPage(
-                            headerRow2,
-                            headervar,
-                            plotly::plotlyOutput("plotlyvar") 
-                        ))
-                        
 
+#Panels________________________________________________________
 
 dataPanel <- tabPanel("Data",
                       fluidPage(
@@ -99,17 +92,27 @@ dataPanel <- tabPanel("Data",
 pokePanel<- tabPanel("Pokemon",
                      fluidPage(
                      htmlOutput("picture"),
+                     button,
                      p("For this app, the variable set shown is a Pokemon dataset, which comprises of five variables: 
                          the id of the Pokemon, its name, and the levels of stamina, defense and attack for each Pokemon. 
-                         In the following table and graph, you can choose any Pokemon you want"),
-                         button))
+                         here are many Pokemons to choose from, 676 Pokemons to be exact. This page is very easy to compare
+                       Pokemons of your choice and see how they stand in comparison to other Pokemon. For example, in the 
+                       Data Panel on the top part of the app, you can click on it and will find a comparison of any group of 
+                       Pokemon of your choice. "),
+                     htmlOutput("picture2")))
+
+varPanel <- tabPanel("Characteristics",
+                     fluidPage(
+                         headervar,
+                          plotly::plotlyOutput("plotvar"))
+)
 
 #Fit together_________________________________________________
 ui <- navbarPage(
    "Pokemon App",
    pokePanel,
     dataPanel,
-    plotlyPanel,
+   varPanel,
     id = "navBar"
 )
 
@@ -133,23 +136,14 @@ server <- function(input, output, session) {
         dataplot %>% filter(name %in% input$selpok)
     })
      
-     data_filtered3 <- reactive({
-         req(input$selname)
-         req(input$selname)
-         data2 %>% filter(name %in% input$selname, var %in% input$selvar)
-     })
-
-    #Output of the different variable plots 
-    output$plotlyvar <- plotly::renderPlotly({
-        varsel= as.numeric(input$selvar)
-         ggplot(data_filtered3,aes(x=name, y=varsel, fill=name)) +
-            geom_bar(stat="identity", position=position_dodge())
-    })
 
    #output table de los datos que estan llamando
    output$dataTable <- renderTable({
     data_filtered()
    })
+   #Maximum and Minimum of the variables selected
+   #s=which.max(output$dataTable[2,])
+   #a[k,]
    
    #Output of many plots
    output$plotlymany <- plotly::renderPlotly({
@@ -157,12 +151,30 @@ server <- function(input, output, session) {
            ggplot(aes(x=variable, y= value, color=name, group= name))+ 
            geom_line()
    })
+
+   
+   #Output of the different variable plots
+   output$plotvar <- plotly::renderPlotly({
+       varsel= as.numeric(input$selvar)
+       ggplot(c, aes(c[,varsel])) +
+        geom_histogram(fill="lightblue", col="darkgoldenrod1")+ labs(title= paste("Histogram of ", names(data_var[varsel]))) +
+                                                           xlab( names(data_var[varsel]))
+   })
+
    #IMAGE
    output$picture <-
        renderText({
            c(
                '<img src="',
                "https://upload.wikimedia.org/wikipedia/commons/9/98/International_Pok%C3%A9mon_logo.svg",
+               '">'
+           )
+       })
+   output$picture2 <-
+       renderText({
+           c(
+               '<img src="',
+               "https://www.tec.com.pe/wp-content/uploads/2018/10/pokemon0_0.jpg",
                '">'
            )
        })
@@ -188,3 +200,27 @@ server <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = server)
+
+# plotlyPanel <- tabPanel("Variable Selection of Pokemon",
+#                         fluidPage(
+#                             headerRow2,
+#                             headervar,
+#                             plotly::plotlyOutput("plotlyvar") 
+#                         ))
+
+# headerRow2 <- div(id="header2", useShinyjs(),
+#                   selectInput(input= "selname",
+#                               label="Select the Pokemon",
+#                               multiple = TRUE,
+#                               choices= data_name,
+#                               selected=head(data_name))
+# )
+
+
+
+#  data_filtered3 <- reactive({
+#      req(input$selname)
+#      data %>% filter(name %in% input$selname)
+#  })
+# 
+

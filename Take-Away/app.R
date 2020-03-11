@@ -86,6 +86,7 @@ dataPanel <- tabPanel("Data",
                       fluidPage(
                           headerRow,
                       tableOutput("dataTable"),
+                      tableOutput("datamax"),
                       plotly::plotlyOutput("plotlymany"))
 )
 
@@ -106,6 +107,12 @@ varPanel <- tabPanel("Characteristics",
                          headervar,
                           plotly::plotlyOutput("plotvar"))
 )
+
+# switchPanel<- tabPanel("Characteristics",
+#                        fluidPage(
+#                            headervar,
+#                            plotly::plotlyOutput("plotvar"))
+# )
 
 #Fit together_________________________________________________
 ui <- navbarPage(
@@ -142,8 +149,7 @@ server <- function(input, output, session) {
     data_filtered()
    })
    #Maximum and Minimum of the variables selected
-   #s=which.max(output$dataTable[2,])
-   #a[k,]
+
    
    #Output of many plots
    output$plotlymany <- plotly::renderPlotly({
@@ -188,7 +194,8 @@ server <- function(input, output, session) {
            params <- list(
                selYear = isolate(input$selpok),
                defense = isolate(input$defense),
-               stamina = isolate(input$stamina)
+               stamina = isolate(input$stamina),
+               attack = isolate(input$attack)
            )
            rmarkdown::render(tempReport, output_file = file,
                              params = params,

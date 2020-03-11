@@ -55,6 +55,11 @@ ddd<- as.numeric(as.character(data2[,3]))
 data2<- cbind(d,dd,ddd)
 c=as.data.frame(data2)
 a=cbind(data[,2],c)
+namel<-function (x){
+    nm<-as.list(x)
+    names(nm)<-as.character(unlist(x))
+    nm
+}
 
 ##########################################################################3
 
@@ -72,8 +77,16 @@ button <- div(id="button", useShinyjs(),
     downloadButton("report", "Generate report")
 )
 
-headervar <- div(id="secondheader", useShinyjs(),
+headervar <- div(id="varheader", useShinyjs(),
                  selectInput(input= "selvar",
+                             label="Select the variable",
+                             multiple = F,
+                             choices= data_var,
+                             selected = data_var[1])
+)
+
+headervar2 <- div(id="secondheader", useShinyjs(),
+                 selectInput(input= "var2",
                              label="Select the variable",
                              multiple = F,
                              choices= data_var,
@@ -108,11 +121,11 @@ varPanel <- tabPanel("Characteristics",
                           plotly::plotlyOutput("plotvar"))
 )
 
-# switchPanel<- tabPanel("Characteristics",
-#                        fluidPage(
-#                            headervar,
-#                            plotly::plotlyOutput("plotvar"))
-# )
+switchPanel<- tabPanel("Graphs",
+                       fluidPage(
+                           headervar2,
+                           plotly::plotlyOutput("diffplot"))
+)
 
 #Fit together_________________________________________________
 ui <- navbarPage(
@@ -120,11 +133,12 @@ ui <- navbarPage(
    pokePanel,
     dataPanel,
    varPanel,
+   switchPanel,
     id = "navBar"
 )
 
 # Define server logic required to draw a histogram_________________________
-server <- function(input, output, session) {
+shinyserver <- function(input, output, session) {
 
     observe({if(input$navBar=="Map") {
         shinyjs::hide("header")
@@ -148,8 +162,6 @@ server <- function(input, output, session) {
    output$dataTable <- renderTable({
     data_filtered()
    })
-   #Maximum and Minimum of the variables selected
-
    
    #Output of many plots
    output$plotlymany <- plotly::renderPlotly({
@@ -166,6 +178,18 @@ server <- function(input, output, session) {
         geom_histogram(fill="lightblue", col="darkgoldenrod1")+ labs(title= paste("Histogram of ", names(data_var[varsel]))) +
                                                            xlab( names(data_var[varsel]))
    })
+   
+   # #output of different graphs 
+   # output$diffplot <- renderUI({
+   #     obj<- switch(input$var2, 
+   #                  "stamina" = stamina, 
+   #                  "defense" = defense, 
+   #                  "attack" = attack)
+   #     var.opts <- namel(colnames(obj))
+   #     selectInput("variable","Variable:", var.opts)
+   # })
+   # 
+  
 
    #IMAGE
    output$picture <-
@@ -206,7 +230,7 @@ server <- function(input, output, session) {
 } 
 
 # Run the application 
-shinyApp(ui = ui, server = server)
+shinyApp(ui = ui, server = shinyserver)
 
 # plotlyPanel <- tabPanel("Variable Selection of Pokemon",
 #                         fluidPage(

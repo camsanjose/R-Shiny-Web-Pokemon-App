@@ -7,6 +7,7 @@ library(httr)
 library(dplyr)
 library(shinyjs)
 library(reshape2)
+library(shinydashboard)
 
 #############################################################################
 #Get data from the web
@@ -55,11 +56,7 @@ ddd<- as.numeric(as.character(data2[,3]))
 data2<- cbind(d,dd,ddd)
 c=as.data.frame(data2)
 a=cbind(data[,2],c)
-namel<-function (x){
-    nm<-as.list(x)
-    names(nm)<-as.character(unlist(x))
-    nm
-}
+names(a)<-c("name","stamina", "defense", "attack")
 
 ##########################################################################3
 
@@ -134,6 +131,7 @@ ui <- navbarPage(
     dataPanel,
    varPanel,
    switchPanel,
+   theme= shinytheme("readable"),
     id = "navBar"
 )
 
@@ -149,7 +147,7 @@ shinyserver <- function(input, output, session) {
 
     data_filtered <- reactive({
         req(input$selpok)
-        data %>% filter(name %in% input$selpok)
+        a %>% filter(name %in% input$selpok)
     })
     
      data_filtered2 <- reactive({
@@ -161,13 +159,21 @@ shinyserver <- function(input, output, session) {
    #output table de los datos que estan llamando
    output$dataTable <- renderTable({
     data_filtered()
-   })
+   }, options = list(rowCallback = I('
+            function(nRow, aData, iDisplayIndex, iDisplayIndexFull) {
+                                      if (parseFloat(aData[,3]) >= 200)
+                                      $("td:eq(3)", nRow).css("font-weight", "bold");
+                                      if (parseFloat(aData[,3]) >= 100)
+                                      $("td:eq(3)", nRow).css("background-color", "#9BF59B");
+  }'),
+                      pageLength = 10, orderClasses = TRUE, searching = FALSE, paging = FALSE
+   ))
    
    #Output of many plots
    output$plotlymany <- plotly::renderPlotly({
        data_filtered2() %>%
            ggplot(aes(x=variable, y= value, color=name, group= name))+ 
-           geom_line()
+           geom_line()+ labs(color= "Pokemon selected")
    })
 
    
@@ -231,27 +237,4 @@ shinyserver <- function(input, output, session) {
 
 # Run the application 
 shinyApp(ui = ui, server = shinyserver)
-
-# plotlyPanel <- tabPanel("Variable Selection of Pokemon",
-#                         fluidPage(
-#                             headerRow2,
-#                             headervar,
-#                             plotly::plotlyOutput("plotlyvar") 
-#                         ))
-
-# headerRow2 <- div(id="header2", useShinyjs(),
-#                   selectInput(input= "selname",
-#                               label="Select the Pokemon",
-#                               multiple = TRUE,
-#                               choices= data_name,
-#                               selected=head(data_name))
-# )
-
-
-
-#  data_filtered3 <- reactive({
-#      req(input$selname)
-#      data %>% filter(name %in% input$selname)
-#  })
-# 
 

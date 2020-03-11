@@ -5,7 +5,7 @@ date: "11/3/2020"
 output: pdf_document
 params: 
   selpok: ["Charmander", "Jigglypuff"]
-  selvar: [1]
+  selvar: ["1"]
 ---
 
 ```{r setup, include=FALSE, warning=F, message=FALSE}

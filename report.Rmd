@@ -4,8 +4,9 @@ author: "Camila San Jose"
 date: "11/3/2020"
 output: pdf_document
 params: 
-  selpok: ["Charmander", "Jigglypuff"]
-  selvar: ["1"]
+  pokemon: ["Charmander", "Jigglypuff"]
+  pokemon2: ["Pikachu"]
+  variable: ["1"]
 ---
 
 ```{r setup, include=FALSE, warning=F, message=FALSE}
@@ -66,10 +67,10 @@ a=cbind(data[,2],c)
 names(a)<-c("name","stamina", "defense", "attack") 
 
 data_filtered <-
-        a %>% filter(name %in% params$selpok)
+        a %>% filter(name %in% params$pokemon)
     
 data_filtered2 <- 
-        dataplot %>% filter(name %in% params$selpok)
+        dataplot %>% filter(name %in% params$pokemon)
 
 ```
 
@@ -81,14 +82,8 @@ This report is dynamic, which means it will show you the variables you have sele
 
 These are the Pokemon you selected to compare: 
 ```{r, echo=F}
-params$selpok
+params$pokemon
 ```
-
-The variable that you chose to create the histogram was: 
-```{r, echo=F}
-params$selvar
-```
-
 
 ## Plots
 
@@ -99,16 +94,6 @@ The plots that are generated from the Pokemon you selected to compare is the fol
 ggplot(data_filtered2, aes(x=variable, y= value, color=name, group= name))+ 
            geom_line()+ labs(color= "Pokemon selected")
 ```
-
-The plot of the variable you selected is:
-
-```{r, echo=FALSE, warning=FALSE, message=FALSE}
-varsel= as.numeric(params$selvar)
-
-ggplot(c, aes(c[,varsel])) +
-        geom_histogram(fill="lightblue", col="darkgoldenrod1")+ labs(title= paste("Histogram of ", names(data_var[varsel]))) + xlab( names(data_var[varsel]))
-```
-
 
 
 Thank your for interacting with the Pokemon! I hope you enjoyed! 
